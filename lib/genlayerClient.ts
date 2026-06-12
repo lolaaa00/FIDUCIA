@@ -36,8 +36,7 @@ const CONTRACT_ADDRESS = (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS ?? '0x0000000
 async function getClient() {
   if (USE_MOCKS) return null;
   const { createClient, chains } = await import('genlayer-js');
-  const endpoint = process.env.NEXT_PUBLIC_GENLAYER_ENDPOINT ?? 'http://localhost:4000';
-  return createClient({ chain: chains.localnet, endpoint } as Parameters<typeof createClient>[0]);
+  return createClient({ chain: chains.studionet } as Parameters<typeof createClient>[0]);
 }
 
 async function getWriteClient() {
@@ -49,16 +48,11 @@ async function getWriteClient() {
   }
 
   const { createClient, chains } = await import('genlayer-js');
-  const endpoint = process.env.NEXT_PUBLIC_GENLAYER_ENDPOINT ?? 'http://localhost:4000';
-  const client = createClient({
-    chain: chains.localnet,
-    endpoint,
+  return createClient({
+    chain: chains.studionet,
     account: wallet.address,
     provider: wallet.provider as never,
   } as Parameters<typeof createClient>[0]);
-
-  await client.connect('localnet');
-  return client;
 }
 
 // ─── Mock helpers ─────────────────────────────────────────────────────────────
