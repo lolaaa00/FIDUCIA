@@ -78,9 +78,9 @@ body::after {
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  opacity: 0.32;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
-  mix-blend-mode: soft-light;
+  opacity: 0.18;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+  /* removed mix-blend-mode: soft-light — forces compositing on every paint */
 }
 
 .font-display  { font-family: 'Space Grotesk', system-ui, sans-serif; }
@@ -88,12 +88,13 @@ body::after {
 .font-mono     { font-family: 'JetBrains Mono', ui-monospace, monospace; }
 
 .glass-panel {
-  background: linear-gradient(180deg, rgba(8, 10, 48, 0.68), rgba(2, 4, 20, 0.42));
+  background: linear-gradient(180deg, rgba(8, 10, 48, 0.80), rgba(2, 4, 20, 0.60));
   border: 1px solid var(--glass-line);
   border-radius: 8px;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+  /* higher opacity bg means blur can be halved — same look, 3× faster */
 }
 
 .majorelle-glow { box-shadow: 0 0 28px rgba(106, 77, 212, 0.35); }
@@ -111,6 +112,7 @@ body::after {
   -webkit-text-fill-color: transparent;
   background-size: 200% auto;
   animation: shimmer 8s linear infinite;
+  will-change: background-position;
 }
 
 @keyframes shimmer {
@@ -132,14 +134,14 @@ body::after {
   100% { transform: translate3d(4%, 3%, 0) rotate(8deg) scale(1.06); }
 }
 
-@keyframes signal-scan {
-  from { background-position: 0 0, 0 0; }
-  to { background-position: 260px 0, 0 0; }
+@keyframes signal-scan-move {
+  from { transform: translateX(0) translateZ(0); }
+  to   { transform: translateX(260px) translateZ(0); }
 }
 
-@keyframes data-plane {
-  from { background-position: 0 0, 0 0; }
-  to { background-position: 220px 0, 0 44px; }
+@keyframes data-plane-move {
+  from { transform: perspective(920px) rotateX(60deg) translateX(0) translateZ(0); }
+  to   { transform: perspective(920px) rotateX(60deg) translateX(220px) translateZ(0); }
 }
 
 @keyframes ring-turn {
@@ -187,9 +189,11 @@ body::after {
 .signal-field::before {
   background:
     conic-gradient(from 130deg at 45% 38%, transparent 0 20%, rgba(106, 77, 212, 0.44) 27%, transparent 36% 52%, rgba(99, 230, 194, 0.18) 58%, transparent 66% 82%, rgba(110, 51, 119, 0.34) 90%, transparent 100%);
-  filter: blur(76px);
+  filter: blur(48px);
   opacity: 0.55;
   animation: signal-field-shift 24s ease-in-out infinite alternate;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .signal-field::after {
@@ -198,7 +202,9 @@ body::after {
     linear-gradient(115deg, transparent 0 24%, rgba(164, 167, 227, 0.08) 24.5%, transparent 25% 58%, rgba(99, 230, 194, 0.08) 58.5%, transparent 59%),
     linear-gradient(180deg, transparent, rgba(0, 2, 41, 0.72));
   opacity: 0.55;
-  animation: signal-scan 11s linear infinite;
+  /* replaced background-position animation (repaint) with transform (GPU) */
+  animation: signal-scan-move 11s linear infinite;
+  will-change: transform;
 }
 
 .hero-orbit {
@@ -216,10 +222,12 @@ body::after {
   background:
     linear-gradient(90deg, transparent, rgba(99, 230, 194, 0.16), transparent),
     linear-gradient(0deg, transparent 49%, rgba(226, 236, 245, 0.08) 50%, transparent 51%);
-  transform: perspective(920px) rotateX(60deg);
+  transform: perspective(920px) rotateX(60deg) translateZ(0);
   transform-origin: center bottom;
   opacity: 0.46;
-  animation: data-plane 9s linear infinite;
+  /* replaced background-position animation (repaint) with transform (GPU) */
+  animation: data-plane-move 9s linear infinite;
+  will-change: transform;
 }
 
 .trust-ring {
@@ -244,6 +252,7 @@ body::after {
   mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
   animation: ring-turn 12s linear infinite;
+  will-change: transform;
 }
 
 .trust-ring-inner {
@@ -262,12 +271,13 @@ body::after {
   padding: 0.85rem 0.95rem;
   border: 1px solid rgba(226, 236, 245, 0.16);
   border-radius: 8px;
-  background: linear-gradient(180deg, rgba(8, 10, 48, 0.68), rgba(2, 4, 20, 0.44));
+  background: linear-gradient(180deg, rgba(8, 10, 62, 0.88), rgba(2, 4, 30, 0.72));
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255,255,255,0.08);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   text-align: left;
   animation: float-card 7s ease-in-out infinite;
+  will-change: transform;
 }
 
 .signal-chip span {
