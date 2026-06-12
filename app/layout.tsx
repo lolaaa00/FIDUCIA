@@ -71,31 +71,9 @@ export default function RootLayout({
             color: var(--alice);
           }
 
-          /* Static grid — position:absolute so it doesn't create a fixed compositing layer */
-          body::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            height: 100vh;
-            pointer-events: none;
-            z-index: 0;
-            background:
-              linear-gradient(rgba(226, 236, 245, 0.03) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(226, 236, 245, 0.02) 1px, transparent 1px);
-            background-size: 84px 84px;
-            mask-image: linear-gradient(to bottom, black 0%, transparent 80%);
-          }
-
-          /* Noise overlay — static, no blend mode */
-          body::after {
-            content: '';
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 1;
-            opacity: 0.12;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
-          }
+          /* body pseudo-elements removed — mask-image + fixed noise overlay
+             both create expensive compositor layers. The solid bg gradient
+             on body provides enough depth without them. */
 
           .site-shell,
           .home-shell,
@@ -282,12 +260,12 @@ export default function RootLayout({
             width: min(70vw, 660px);
             aspect-ratio: 1;
             border-radius: 50%;
-            background: radial-gradient(circle, transparent 36%, rgba(106,77,212,0.32) 50%, transparent 70%);
-            filter: blur(3px);
+            background: radial-gradient(circle, transparent 36%, rgba(106,77,212,0.28) 50%, transparent 70%);
+            /* no filter:blur — each blur creates its own compositor layer */
             transform: translate(-50%, -50%) translateZ(0);
             pointer-events: none;
             animation: breathe 6s ease-in-out infinite;
-            will-change: transform, opacity;
+            will-change: opacity;
           }
 
           .hero-halo::after {
@@ -295,9 +273,9 @@ export default function RootLayout({
             position: absolute;
             inset: 22%;
             border-radius: 50%;
-            background: radial-gradient(circle, transparent 48%, rgba(110,51,119,0.26) 60%, transparent 78%);
+            background: radial-gradient(circle, transparent 48%, rgba(110,51,119,0.22) 60%, transparent 78%);
             animation: breathe 6s ease-in-out infinite reverse;
-            will-change: transform, opacity;
+            will-change: opacity;
           }
 
           .hero__inner {
@@ -811,8 +789,8 @@ export default function RootLayout({
           }
 
           @keyframes breathe {
-            0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1) translateZ(0); }
-            50%       { opacity: 1;   transform: translate(-50%, -50%) scale(1.08) translateZ(0); }
+            0%, 100% { opacity: 0.6; }
+            50%       { opacity: 1; }
           }
 
           .signal-field::before,
@@ -834,12 +812,9 @@ export default function RootLayout({
 
           .signal-field::after {
             inset: 0;
-            background:
-              linear-gradient(115deg, transparent 0 24%, rgba(164, 167, 227, 0.08) 24.5%, transparent 25% 58%, rgba(99, 230, 194, 0.08) 58.5%, transparent 59%),
-              linear-gradient(180deg, transparent, rgba(0, 2, 41, 0.72));
+            /* Static gradient — removes one full-viewport animated layer */
+            background: linear-gradient(180deg, transparent 40%, rgba(0, 2, 41, 0.72));
             opacity: 0.55;
-            animation: signal-scan-move 11s linear infinite;
-            will-change: transform;
           }
 
           @media (max-width: 760px) {

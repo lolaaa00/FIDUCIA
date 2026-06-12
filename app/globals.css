@@ -58,30 +58,7 @@ body {
   color: var(--alice);
 }
 
-/* Ambient signal field */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    linear-gradient(rgba(226, 236, 245, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(226, 236, 245, 0.025) 1px, transparent 1px);
-  background-size: 84px 84px;
-  mask-image: linear-gradient(to bottom, black 0%, black 48%, transparent 90%);
-}
-
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.18;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
-  /* removed mix-blend-mode: soft-light — forces compositing on every paint */
-}
+/* body pseudo-elements removed — see layout.tsx */
 
 .font-display  { font-family: 'Space Grotesk', system-ui, sans-serif; }
 .font-interface { font-family: 'Inter', system-ui, sans-serif; }
