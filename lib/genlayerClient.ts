@@ -1,7 +1,7 @@
 'use client';
 
 // Fiducia — GenLayer Contract Adapter
-// All contract interaction must go through this file.
+// All contract interaction goes through this file.
 // Set NEXT_PUBLIC_USE_MOCKS=true for mock mode.
 // Set NEXT_PUBLIC_CONTRACT_ADDRESS to the deployed contract address.
 
@@ -24,39 +24,77 @@ import {
   MOCK_REVIEWED_CASES,
   MOCK_PROTOCOL_STATS,
 } from './mockData';
-import { getWalletRuntime } from './walletRuntime';
 
 const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true';
-const CONTRACT_ADDRESS = (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS ?? '0x0000000000000000000000000000000000000000') as `0x${string}`;
+const CONTRACT_ADDRESS = (
+  process.env.NEXT_PUBLIC_CONTRACT_ADDRESS ?? '0x0000000000000000000000000000000000000000'
+) as `0x${string}`;
 
-// ─── GenLayer client initialisation ──────────────────────────────────────────
-// When not in mock mode, import and initialise the GenLayer JS adapter.
-// The actual genlayer-js API is used here.
+// ─── Studionet chain config ───────────────────────────────────────────────────
+// Chain ID 61999, imported from genlayer-js and explorer URL overridden.
 
-async function getClient() {
-  if (USE_MOCKS) return null;
-  const { createClient, chains } = await import('genlayer-js');
-  return createClient({ chain: chains.studionet } as Parameters<typeof createClient>[0]);
+async function getStudionet() {
+  const { chains } = await import('genlayer-js');
+  return {
+    ...chains.studionet,
+    id: 61999,
+    rpcUrls: {
+      default: { http: ['https://studio.genlayer.com/api'] as readonly string[] },
+    },
+    blockExplorers: {
+      default: {
+        name: 'GenLayer Studio Explorer',
+        url: 'https://explorer-studio.genlayer.com',
+      },
+    },
+  };
 }
 
+// ─── Read client (no wallet needed) ──────────────────────────────────────────
+async function getClient() {
+  if (USE_MOCKS) return null;
+  const { createClient } = await import('genlayer-js');
+  const chain = await getStudionet();
+  return createClient({ chain } as Parameters<typeof createClient>[0]);
+}
+
+// ─── Write client (injected wallet via genlayer-js) ───────────────────────────
+// Gets window.ethereum and passes it to genlayer-js. The SDK calls
+// eth_sendTransaction on the injected provider, which triggers the wallet popup.
 async function getWriteClient() {
   if (USE_MOCKS) return null;
 
-  const wallet = getWalletRuntime();
-  if (!wallet.address || !wallet.provider) {
-    throw new Error('Connect your wallet before writing to GenLayer.');
+  if (typeof window === 'undefined') {
+    throw new Error('Write operations are only available in the browser.');
   }
 
-  const { createClient, chains } = await import('genlayer-js');
+  const ethereum = (window as Window & { ethereum?: unknown }).ethereum;
+  if (!ethereum) {
+    throw new Error('No injected wallet detected. Please install MetaMask or another Web3 wallet.');
+  }
+
+  // Request accounts — triggers the wallet connect popup if not already connected.
+  const accounts = (await (ethereum as { request: (args: { method: string }) => Promise<string[]> })
+    .request({ method: 'eth_requestAccounts' })) as string[];
+
+  if (!accounts || accounts.length === 0) {
+    throw new Error('No accounts returned. Please unlock your wallet and try again.');
+  }
+
+  const address = accounts[0] as `0x${string}`;
+  const { createClient } = await import('genlayer-js');
+  const chain = await getStudionet();
+
+  // provider: ethereum → genlayer-js uses it to sign & broadcast transactions.
+  // account: address  → tells genlayer-js which account is signing.
   return createClient({
-    chain: chains.studionet,
-    account: wallet.address,
-    provider: wallet.provider as never,
+    chain,
+    account: address,
+    provider: ethereum as never,
   } as Parameters<typeof createClient>[0]);
 }
 
-// ─── Mock helpers ─────────────────────────────────────────────────────────────
-
+// ─── Mock state ───────────────────────────────────────────────────────────────
 const mockCases = [...MOCK_CASES];
 const mockVerdicts = { ...MOCK_VERDICTS };
 const mockAppealVerdicts = { ...MOCK_APPEAL_VERDICTS };
@@ -112,7 +150,12 @@ export async function commitEvidence(caseId: string, commitment: string): Promis
     return;
   }
   const client = await getWriteClient();
-  await client!.writeContract({ address: CONTRACT_ADDRESS, functionName: 'commit_evidence', args: [caseId, commitment], value: BigInt(0) });
+  await client!.writeContract({
+    address: CONTRACT_ADDRESS,
+    functionName: 'commit_evidence',
+    args: [caseId, commitment],
+    value: BigInt(0),
+  });
 }
 
 export async function revealEvidence(caseId: string, evidenceJson: string, salt: string): Promise<void> {
@@ -122,7 +165,12 @@ export async function revealEvidence(caseId: string, evidenceJson: string, salt:
     return;
   }
   const client = await getWriteClient();
-  await client!.writeContract({ address: CONTRACT_ADDRESS, functionName: 'reveal_evidence', args: [caseId, evidenceJson, salt], value: BigInt(0) });
+  await client!.writeContract({
+    address: CONTRACT_ADDRESS,
+    functionName: 'reveal_evidence',
+    args: [caseId, evidenceJson, salt],
+    value: BigInt(0),
+  });
 }
 
 export async function cancelCase(caseId: string): Promise<void> {
@@ -132,7 +180,12 @@ export async function cancelCase(caseId: string): Promise<void> {
     return;
   }
   const client = await getWriteClient();
-  await client!.writeContract({ address: CONTRACT_ADDRESS, functionName: 'cancel_case', args: [caseId], value: BigInt(0) });
+  await client!.writeContract({
+    address: CONTRACT_ADDRESS,
+    functionName: 'cancel_case',
+    args: [caseId],
+    value: BigInt(0),
+  });
 }
 
 export async function triggerReview(caseId: string, fee: bigint): Promise<void> {
@@ -142,7 +195,12 @@ export async function triggerReview(caseId: string, fee: bigint): Promise<void> 
     return;
   }
   const client = await getWriteClient();
-  await client!.writeContract({ address: CONTRACT_ADDRESS, functionName: 'trigger_review', args: [caseId], value: fee });
+  await client!.writeContract({
+    address: CONTRACT_ADDRESS,
+    functionName: 'trigger_review',
+    args: [caseId],
+    value: fee,
+  });
 }
 
 export async function commitAppeal(caseId: string, appealCommitment: string): Promise<void> {
@@ -152,7 +210,12 @@ export async function commitAppeal(caseId: string, appealCommitment: string): Pr
     return;
   }
   const client = await getWriteClient();
-  await client!.writeContract({ address: CONTRACT_ADDRESS, functionName: 'commit_appeal', args: [caseId, appealCommitment], value: BigInt(0) });
+  await client!.writeContract({
+    address: CONTRACT_ADDRESS,
+    functionName: 'commit_appeal',
+    args: [caseId, appealCommitment],
+    value: BigInt(0),
+  });
 }
 
 export async function revealAppeal(caseId: string, appealEvidenceJson: string, salt: string): Promise<void> {
@@ -162,7 +225,12 @@ export async function revealAppeal(caseId: string, appealEvidenceJson: string, s
     return;
   }
   const client = await getWriteClient();
-  await client!.writeContract({ address: CONTRACT_ADDRESS, functionName: 'reveal_appeal', args: [caseId, appealEvidenceJson, salt], value: BigInt(0) });
+  await client!.writeContract({
+    address: CONTRACT_ADDRESS,
+    functionName: 'reveal_appeal',
+    args: [caseId, appealEvidenceJson, salt],
+    value: BigInt(0),
+  });
 }
 
 export async function triggerAppealReview(caseId: string, fee: bigint): Promise<void> {
@@ -172,25 +240,45 @@ export async function triggerAppealReview(caseId: string, fee: bigint): Promise<
     return;
   }
   const client = await getWriteClient();
-  await client!.writeContract({ address: CONTRACT_ADDRESS, functionName: 'trigger_appeal_review', args: [caseId], value: fee });
+  await client!.writeContract({
+    address: CONTRACT_ADDRESS,
+    functionName: 'trigger_appeal_review',
+    args: [caseId],
+    value: fee,
+  });
 }
 
 export async function setReviewFee(newFee: number): Promise<void> {
   if (USE_MOCKS) { mockProtocolStats.review_fee = newFee; return; }
   const client = await getWriteClient();
-  await client!.writeContract({ address: CONTRACT_ADDRESS, functionName: 'set_review_fee', args: [newFee], value: BigInt(0) });
+  await client!.writeContract({
+    address: CONTRACT_ADDRESS,
+    functionName: 'set_review_fee',
+    args: [newFee],
+    value: BigInt(0),
+  });
 }
 
 export async function pauseProtocol(): Promise<void> {
   if (USE_MOCKS) { mockProtocolStats.paused = true; return; }
   const client = await getWriteClient();
-  await client!.writeContract({ address: CONTRACT_ADDRESS, functionName: 'pause', args: [], value: BigInt(0) });
+  await client!.writeContract({
+    address: CONTRACT_ADDRESS,
+    functionName: 'pause',
+    args: [],
+    value: BigInt(0),
+  });
 }
 
 export async function unpauseProtocol(): Promise<void> {
   if (USE_MOCKS) { mockProtocolStats.paused = false; return; }
   const client = await getWriteClient();
-  await client!.writeContract({ address: CONTRACT_ADDRESS, functionName: 'unpause', args: [], value: BigInt(0) });
+  await client!.writeContract({
+    address: CONTRACT_ADDRESS,
+    functionName: 'unpause',
+    args: [],
+    value: BigInt(0),
+  });
 }
 
 export async function flagCase(caseId: string, reason: string): Promise<void> {
@@ -200,10 +288,15 @@ export async function flagCase(caseId: string, reason: string): Promise<void> {
     return;
   }
   const client = await getWriteClient();
-  await client!.writeContract({ address: CONTRACT_ADDRESS, functionName: 'flag_case', args: [caseId, reason], value: BigInt(0) });
+  await client!.writeContract({
+    address: CONTRACT_ADDRESS,
+    functionName: 'flag_case',
+    args: [caseId, reason],
+    value: BigInt(0),
+  });
 }
 
-// ─── Read functions ────────────────────────────────────────────────────────────
+// ─── Read functions ───────────────────────────────────────────────────────────
 
 export async function getCase(caseId: string): Promise<CreditCase | null> {
   if (USE_MOCKS) return mockCases.find((c) => c.case_id === caseId) ?? null;
@@ -268,4 +361,19 @@ export async function getProtocolStats(): Promise<ProtocolStats> {
   const client = await getClient();
   const raw = await client!.readContract({ address: CONTRACT_ADDRESS, functionName: 'get_protocol_stats', args: [] });
   return JSON.parse(raw as string) as ProtocolStats;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Returns the connected address from the injected wallet, or null if none. */
+export async function getConnectedAddress(): Promise<`0x${string}` | null> {
+  if (typeof window === 'undefined') return null;
+  const ethereum = (window as Window & { ethereum?: { request: (args: { method: string }) => Promise<string[]> } }).ethereum;
+  if (!ethereum) return null;
+  try {
+    const accounts = await ethereum.request({ method: 'eth_accounts' });
+    return (accounts?.[0] as `0x${string}` | undefined) ?? null;
+  } catch {
+    return null;
+  }
 }
