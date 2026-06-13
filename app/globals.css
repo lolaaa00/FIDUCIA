@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+/* Google Fonts @import removed — fonts are loaded via next/font in layout.tsx
+   which self-hosts them at build time with zero blocking network requests */
 @import "tailwindcss";
 
 :root {
@@ -88,8 +89,6 @@ body {
   background-clip: text;
   -webkit-text-fill-color: transparent;
   background-size: 200% auto;
-  animation: shimmer 8s linear infinite;
-  will-change: background-position;
 }
 
 @keyframes shimmer {
@@ -165,11 +164,10 @@ body {
 
 .signal-field::before {
   background:
-    conic-gradient(from 130deg at 45% 38%, transparent 0 20%, rgba(106, 77, 212, 0.44) 27%, transparent 36% 52%, rgba(99, 230, 194, 0.18) 58%, transparent 66% 82%, rgba(110, 51, 119, 0.34) 90%, transparent 100%);
-  filter: blur(48px);
-  opacity: 0.55;
-  animation: signal-field-shift 24s ease-in-out infinite alternate;
-  will-change: transform;
+    radial-gradient(circle at 24% 24%, rgba(106, 77, 212, 0.34), transparent 34%),
+    radial-gradient(circle at 72% 38%, rgba(99, 230, 194, 0.18), transparent 30%),
+    radial-gradient(circle at 50% 80%, rgba(110, 51, 119, 0.22), transparent 34%);
+  opacity: 0.45;
   transform: translateZ(0);
 }
 
@@ -179,9 +177,7 @@ body {
     linear-gradient(115deg, transparent 0 24%, rgba(164, 167, 227, 0.08) 24.5%, transparent 25% 58%, rgba(99, 230, 194, 0.08) 58.5%, transparent 59%),
     linear-gradient(180deg, transparent, rgba(0, 2, 41, 0.72));
   opacity: 0.55;
-  /* replaced background-position animation (repaint) with transform (GPU) */
-  animation: signal-scan-move 11s linear infinite;
-  will-change: transform;
+  transform: translateZ(0);
 }
 
 .hero-orbit {
@@ -202,9 +198,7 @@ body {
   transform: perspective(920px) rotateX(60deg) translateZ(0);
   transform-origin: center bottom;
   opacity: 0.46;
-  /* replaced background-position animation (repaint) with transform (GPU) */
-  animation: data-plane-move 9s linear infinite;
-  will-change: transform;
+  transform: perspective(920px) rotateX(60deg) translateZ(0);
 }
 
 .trust-ring {
@@ -228,8 +222,6 @@ body {
   background: conic-gradient(from 0deg, transparent 0 18%, var(--mint), transparent 28% 58%, var(--velvet), transparent 68% 100%) border-box;
   mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
-  animation: ring-turn 12s linear infinite;
-  will-change: transform;
 }
 
 .trust-ring-inner {
@@ -237,10 +229,6 @@ body {
   opacity: 0.5;
 }
 
-.trust-ring-inner::before {
-  animation-duration: 18s;
-  animation-direction: reverse;
-}
 
 .signal-chip {
   position: absolute;
@@ -250,11 +238,8 @@ body {
   border-radius: 8px;
   background: linear-gradient(180deg, rgba(8, 10, 62, 0.88), rgba(2, 4, 30, 0.72));
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255,255,255,0.08);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   text-align: left;
-  animation: float-card 7s ease-in-out infinite;
-  will-change: transform;
+  transform: translateZ(0);
 }
 
 .signal-chip span {
@@ -274,9 +259,9 @@ body {
 }
 
 .signal-chip-a { left: max(2rem, 8vw); top: 26%; }
-.signal-chip-b { right: max(2rem, 8vw); top: 30%; animation-delay: -2.1s; }
-.signal-chip-c { left: 9vw; bottom: 10%; animation-delay: -4.2s; }
-.signal-chip-d { right: 9vw; bottom: 10%; animation-delay: -1.2s; }
+.signal-chip-b { right: max(2rem, 8vw); top: 30%; }
+.signal-chip-c { left: 9vw; bottom: 10%; }
+.signal-chip-d { right: 9vw; bottom: 10%; }
 
 .timeline {
   position: relative;
