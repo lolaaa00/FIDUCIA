@@ -17,12 +17,14 @@ const appLinks = [
   { href: '/borrower',   label: 'Borrower' },
   { href: '/lenders',    label: 'Lenders' },
   { href: '/reputation', label: 'Reputation' },
-  { href: '/admin',      label: 'Admin' },
 ];
 
 export default function TopNav() {
   const pathname = usePathname();
   const isHome = pathname === '/';
+  const { address } = useWallet();
+  const adminAddress = process.env.NEXT_PUBLIC_ADMIN_ADDRESS;
+  const isAdmin = adminAddress && address && address.toLowerCase() === adminAddress.toLowerCase();
 
   return (
     <nav className="site-nav">
@@ -43,7 +45,7 @@ export default function TopNav() {
                   {link.label}
                 </a>
               ))
-            : appLinks.map((link) => {
+            : [...appLinks, ...(isAdmin ? [{ href: '/admin', label: 'Admin' }] : [])].map((link) => {
                 const active = pathname.startsWith(link.href);
                 return (
                   <Link

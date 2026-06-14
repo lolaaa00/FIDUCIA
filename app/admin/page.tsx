@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import { ProtocolStats } from '@/types/fiducia';
 import { getProtocolStats, pauseProtocol, unpauseProtocol, setReviewFee, flagCase } from '@/lib/genlayerClient';
+import { useWallet } from '@/components/wallet/WalletProvider';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 
 export default function AdminPage() {
+  const { address, connect, hasProvider, isConnecting } = useWallet();
   const [stats, setStats] = useState<ProtocolStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [newFee, setNewFee] = useState('');
@@ -49,8 +51,30 @@ export default function AdminPage() {
     }
   }
 
+  const isAdmin = address && stats && address.toLowerCase() === stats.admin.toLowerCase();
+
   if (loading) return <div className="text-center py-32 text-[#A4A7E3]">Loading…</div>;
   if (!stats) return null;
+
+  if (!address) return (
+    <div className="max-w-md mx-auto px-6 py-32 text-center space-y-6">
+      <p className="font-display text-2xl text-[#E2ECF5]">Admin access required</p>
+      <p className="text-sm text-[#A4A7E3]">Connect the admin wallet to continue.</p>
+      <Button variant="gold" onClick={connect} disabled={!hasProvider || isConnecting}>
+        {isConnecting ? 'Connecting…' : 'Connect Wallet'}
+      </Button>
+    </div>
+  );
+
+  if (!isAdmin) return (
+    <div className="max-w-md mx-auto px-6 py-32 text-center space-y-4">
+      <p className="font-display text-2xl text-[#E05D3F]">Access denied</p>
+      <p className="text-sm text-[#A4A7E3]">
+        Connected as <code className="font-mono text-[#63E6C2]">{address}</code>
+      </p>
+      <p className="text-sm text-[#A4A7E3]">Only the protocol admin can access this page.</p>
+    </div>
+  );
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-12 space-y-8">
