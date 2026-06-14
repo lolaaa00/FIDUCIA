@@ -199,6 +199,13 @@ export default function CaseDetailPage() {
           <Card>
             <ReasoningTrail reasoning={verdict.reasoning} riskFlags={verdict.risk_flags} positiveSignals={verdict.positive_signals} />
           </Card>
+          {activeAddress && (
+            <div className="flex justify-end">
+              <Link href={`/reputation/${activeAddress}`} className="font-mono text-xs text-[#F6C56B] hover:underline">
+                View your on-chain reputation →
+              </Link>
+            </div>
+          )}
         </div>
       )}
 

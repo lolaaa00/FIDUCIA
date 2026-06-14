@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { ReviewedCaseRecord, BorrowerReputation } from '@/types/fiducia';
 import { shortAddress, formatAmount, appealOutcomeLabel } from '@/lib/format';
 import { DecisionBadge, RiskBadge } from '@/components/ui/Badge';
@@ -63,6 +64,12 @@ export default function CreditReportDetail({ record, reputation }: Props) {
             >
               {copied ? 'Copied!' : 'Copy'}
             </button>
+            <Link
+              href={`/reputation/${c.borrower}`}
+              className="text-xs font-mono text-[#F6C56B] hover:underline"
+            >
+              Reputation →
+            </Link>
           </div>
         </div>
 
