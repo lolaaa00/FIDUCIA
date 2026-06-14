@@ -26,6 +26,7 @@ import {
 } from './mockData';
 
 const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === 'true';
+
 const CONTRACT_ADDRESS = (
   process.env.NEXT_PUBLIC_CONTRACT_ADDRESS ?? '0x0000000000000000000000000000000000000000'
 ) as `0x${string}`;
@@ -143,157 +144,157 @@ export async function createCase(
   return String(result);
 }
 
-export async function commitEvidence(caseId: string, commitment: string): Promise<void> {
+export async function commitEvidence(caseId: string, commitment: string): Promise<string> {
   if (USE_MOCKS) {
     const c = mockCases.find((x) => x.case_id === caseId);
     if (c) { c.evidence_commitment = commitment; c.status = 'COMMITTED'; }
-    return;
+    return '0xmock';
   }
   const client = await getWriteClient();
-  await client!.writeContract({
+  return String(await client!.writeContract({
     address: CONTRACT_ADDRESS,
     functionName: 'commit_evidence',
     args: [caseId, commitment],
     value: BigInt(0),
-  });
+  }));
 }
 
-export async function revealEvidence(caseId: string, evidenceJson: string, salt: string): Promise<void> {
+export async function revealEvidence(caseId: string, evidenceJson: string, salt: string): Promise<string> {
   if (USE_MOCKS) {
     const c = mockCases.find((x) => x.case_id === caseId);
     if (c) c.status = 'READY_FOR_REVIEW';
-    return;
+    return '0xmock';
   }
   const client = await getWriteClient();
-  await client!.writeContract({
+  return String(await client!.writeContract({
     address: CONTRACT_ADDRESS,
     functionName: 'reveal_evidence',
     args: [caseId, evidenceJson, salt],
     value: BigInt(0),
-  });
+  }));
 }
 
-export async function cancelCase(caseId: string): Promise<void> {
+export async function cancelCase(caseId: string): Promise<string> {
   if (USE_MOCKS) {
     const c = mockCases.find((x) => x.case_id === caseId);
     if (c) c.status = 'CANCELLED';
-    return;
+    return '0xmock';
   }
   const client = await getWriteClient();
-  await client!.writeContract({
+  return String(await client!.writeContract({
     address: CONTRACT_ADDRESS,
     functionName: 'cancel_case',
     args: [caseId],
     value: BigInt(0),
-  });
+  }));
 }
 
-export async function triggerReview(caseId: string, fee: bigint): Promise<void> {
+export async function triggerReview(caseId: string, fee: bigint): Promise<string> {
   if (USE_MOCKS) {
     const c = mockCases.find((x) => x.case_id === caseId);
     if (c) c.status = 'UNDER_REVIEW';
-    return;
+    return '0xmock';
   }
   const client = await getWriteClient();
-  await client!.writeContract({
+  return String(await client!.writeContract({
     address: CONTRACT_ADDRESS,
     functionName: 'trigger_review',
     args: [caseId],
     value: fee,
-  });
+  }));
 }
 
-export async function commitAppeal(caseId: string, appealCommitment: string): Promise<void> {
+export async function commitAppeal(caseId: string, appealCommitment: string): Promise<string> {
   if (USE_MOCKS) {
     const c = mockCases.find((x) => x.case_id === caseId);
     if (c) c.status = 'APPEAL_COMMITTED';
-    return;
+    return '0xmock';
   }
   const client = await getWriteClient();
-  await client!.writeContract({
+  return String(await client!.writeContract({
     address: CONTRACT_ADDRESS,
     functionName: 'commit_appeal',
     args: [caseId, appealCommitment],
     value: BigInt(0),
-  });
+  }));
 }
 
-export async function revealAppeal(caseId: string, appealEvidenceJson: string, salt: string): Promise<void> {
+export async function revealAppeal(caseId: string, appealEvidenceJson: string, salt: string): Promise<string> {
   if (USE_MOCKS) {
     const c = mockCases.find((x) => x.case_id === caseId);
     if (c) c.status = 'READY_FOR_APPEAL_REVIEW';
-    return;
+    return '0xmock';
   }
   const client = await getWriteClient();
-  await client!.writeContract({
+  return String(await client!.writeContract({
     address: CONTRACT_ADDRESS,
     functionName: 'reveal_appeal',
     args: [caseId, appealEvidenceJson, salt],
     value: BigInt(0),
-  });
+  }));
 }
 
-export async function triggerAppealReview(caseId: string, fee: bigint): Promise<void> {
+export async function triggerAppealReview(caseId: string, fee: bigint): Promise<string> {
   if (USE_MOCKS) {
     const c = mockCases.find((x) => x.case_id === caseId);
     if (c) c.status = 'APPEAL_UNDER_REVIEW';
-    return;
+    return '0xmock';
   }
   const client = await getWriteClient();
-  await client!.writeContract({
+  return String(await client!.writeContract({
     address: CONTRACT_ADDRESS,
     functionName: 'trigger_appeal_review',
     args: [caseId],
     value: fee,
-  });
+  }));
 }
 
-export async function setReviewFee(newFee: number): Promise<void> {
-  if (USE_MOCKS) { mockProtocolStats.review_fee = newFee; return; }
+export async function setReviewFee(newFee: number): Promise<string> {
+  if (USE_MOCKS) { mockProtocolStats.review_fee = newFee; return '0xmock'; }
   const client = await getWriteClient();
-  await client!.writeContract({
+  return String(await client!.writeContract({
     address: CONTRACT_ADDRESS,
     functionName: 'set_review_fee',
     args: [newFee],
     value: BigInt(0),
-  });
+  }));
 }
 
-export async function pauseProtocol(): Promise<void> {
-  if (USE_MOCKS) { mockProtocolStats.paused = true; return; }
+export async function pauseProtocol(): Promise<string> {
+  if (USE_MOCKS) { mockProtocolStats.paused = true; return '0xmock'; }
   const client = await getWriteClient();
-  await client!.writeContract({
+  return String(await client!.writeContract({
     address: CONTRACT_ADDRESS,
     functionName: 'pause',
     args: [],
     value: BigInt(0),
-  });
+  }));
 }
 
-export async function unpauseProtocol(): Promise<void> {
-  if (USE_MOCKS) { mockProtocolStats.paused = false; return; }
+export async function unpauseProtocol(): Promise<string> {
+  if (USE_MOCKS) { mockProtocolStats.paused = false; return '0xmock'; }
   const client = await getWriteClient();
-  await client!.writeContract({
+  return String(await client!.writeContract({
     address: CONTRACT_ADDRESS,
     functionName: 'unpause',
     args: [],
     value: BigInt(0),
-  });
+  }));
 }
 
-export async function flagCase(caseId: string, reason: string): Promise<void> {
+export async function flagCase(caseId: string, reason: string): Promise<string> {
   if (USE_MOCKS) {
     const c = mockCases.find((x) => x.case_id === caseId);
     if (c) c.status = 'FLAGGED';
-    return;
+    return '0xmock';
   }
   const client = await getWriteClient();
-  await client!.writeContract({
+  return String(await client!.writeContract({
     address: CONTRACT_ADDRESS,
     functionName: 'flag_case',
     args: [caseId, reason],
     value: BigInt(0),
-  });
+  }));
 }
 
 // ─── Read functions ───────────────────────────────────────────────────────────
@@ -364,6 +365,29 @@ export async function getProtocolStats(): Promise<ProtocolStats> {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+export type TxStatus = 'ACCEPTED' | 'FINALIZED';
+
+/**
+ * Wait for a GenLayer transaction to reach the desired status.
+ * Use 'ACCEPTED' for fast UX feedback; 'FINALIZED' before reads that depend on the result.
+ */
+export async function waitForTransaction(
+  txHash: string,
+  status: TxStatus = 'ACCEPTED',
+): Promise<unknown> {
+  if (USE_MOCKS) return null;
+  const { createClient } = await import('genlayer-js');
+  const { TransactionStatus } = await import('genlayer-js/types');
+  const chain = await getStudionet();
+  const client = createClient({ chain } as Parameters<typeof createClient>[0]);
+  return client.waitForTransactionReceipt({
+    hash: txHash as `0x${string}`,
+    status: status === 'FINALIZED' ? TransactionStatus.FINALIZED : TransactionStatus.ACCEPTED,
+    retries: 60,
+    interval: 4000,
+  } as Parameters<typeof client.waitForTransactionReceipt>[0]);
+}
 
 /** Returns the connected address from the injected wallet, or null if none. */
 export async function getConnectedAddress(): Promise<`0x${string}` | null> {

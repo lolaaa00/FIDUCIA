@@ -35,7 +35,7 @@ export default function AdminPage() {
     };
   }, []);
 
-  async function act(key: string, fn: () => Promise<void>) {
+  async function act(key: string, fn: () => Promise<unknown>) {
     setActionLoading(key);
     setMsg('');
     try {

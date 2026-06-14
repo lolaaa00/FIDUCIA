@@ -1,0 +1,38 @@
+name: Fiducia Keeper
+
+on:
+  schedule:
+    # Runs every 15 minutes. GenLayer AI reviews take ~30–60s after triggering,
+    # so 15-minute intervals give ample time between sweeps.
+    - cron: '*/15 * * * *'
+
+  workflow_dispatch:
+    # Allow manual trigger from the GitHub Actions UI (useful for testing)
+
+jobs:
+  keeper:
+    name: Sweep pending cases
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run keeper
+        env:
+          KEEPER_PRIVATE_KEY:            ${{ secrets.KEEPER_PRIVATE_KEY }}
+          NEXT_PUBLIC_CONTRACT_ADDRESS:  ${{ secrets.NEXT_PUBLIC_CONTRACT_ADDRESS }}
+          REVIEW_FEE_WEI:                ${{ vars.REVIEW_FEE_WEI || '0' }}
+        run: npx tsx scripts/keeper.ts
