@@ -18,7 +18,6 @@ import { TransactionStatus } from 'genlayer-js/types';
 
 const PRIVATE_KEY = process.env.KEEPER_PRIVATE_KEY as `0x${string}` | undefined;
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}` | undefined;
-const REVIEW_FEE = BigInt(process.env.REVIEW_FEE_WEI ?? '0');
 
 if (!PRIVATE_KEY) throw new Error('KEEPER_PRIVATE_KEY is required');
 if (!CONTRACT_ADDRESS) throw new Error('NEXT_PUBLIC_CONTRACT_ADDRESS is required');
@@ -87,7 +86,10 @@ async function run() {
     return;
   }
 
+  // Read fee directly from contract so the keeper always sends the right amount
+  const REVIEW_FEE = BigInt(stats.review_fee);
   console.log(`[keeper] Total cases on-chain: ${stats.total_cases}`);
+  console.log(`[keeper] Review fee from contract: ${REVIEW_FEE} wei`);
 
   // 2. Fetch every case and collect the ones needing action
   const pendingReview: CaseRecord[] = [];

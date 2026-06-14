@@ -34,5 +34,4 @@ jobs:
         env:
           KEEPER_PRIVATE_KEY:            ${{ secrets.KEEPER_PRIVATE_KEY }}
           NEXT_PUBLIC_CONTRACT_ADDRESS:  ${{ secrets.NEXT_PUBLIC_CONTRACT_ADDRESS }}
-          REVIEW_FEE_WEI:                ${{ vars.REVIEW_FEE_WEI || '0' }}
         run: npx tsx scripts/keeper.ts
