@@ -48,18 +48,39 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
     let cancelled = false;
 
+    async function ensureStudionet(eth: EthereumProvider) {
+      const CHAIN_ID_HEX = '0xF29F';
+      try {
+        await eth.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: CHAIN_ID_HEX }] });
+      } catch (switchErr) {
+        if ((switchErr as { code?: number }).code === 4902) {
+          await eth.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: CHAIN_ID_HEX,
+              chainName: 'GenLayer Studio',
+              nativeCurrency: { name: 'GEN Token', symbol: 'GEN', decimals: 18 },
+              rpcUrls: ['https://studio.genlayer.com/api'],
+              blockExplorerUrls: ['https://explorer-studio.genlayer.com'],
+            }],
+          });
+          await eth.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: CHAIN_ID_HEX }] });
+        }
+      }
+    }
+
     async function syncAccounts() {
       try {
-        const [accts, chain] = await Promise.all([
-          ethereum!.request({ method: 'eth_accounts' }) as Promise<string[]>,
-          ethereum!.request({ method: 'eth_chainId' }) as Promise<string>,
-        ]);
+        const accts = (await ethereum!.request({ method: 'eth_accounts' })) as string[];
         if (cancelled) return;
         const addr = (accts?.[0] as Address | undefined) ?? null;
         setAddress(addr);
-        setChainId(chain);
+        // If already connected, silently switch to Studionet
+        if (addr) await ensureStudionet(ethereum!);
+        const chain = (await ethereum!.request({ method: 'eth_chainId' })) as string;
+        if (!cancelled) setChainId(chain);
       } catch {
-        // not connected yet — that's fine
+        // not connected yet — fine
       }
     }
 
@@ -91,9 +112,30 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     try {
       const accts = (await ethereum.request({ method: 'eth_requestAccounts' })) as string[];
+
+      const CHAIN_ID_HEX = '0xF29F'; // 61999
+      try {
+        await ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: CHAIN_ID_HEX }] });
+      } catch (switchErr) {
+        if ((switchErr as { code?: number }).code === 4902) {
+          await ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: CHAIN_ID_HEX,
+              chainName: 'GenLayer Studio',
+              nativeCurrency: { name: 'GEN Token', symbol: 'GEN', decimals: 18 },
+              rpcUrls: ['https://studio.genlayer.com/api'],
+              blockExplorerUrls: ['https://explorer-studio.genlayer.com'],
+            }],
+          });
+          await ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: CHAIN_ID_HEX }] });
+        } else {
+          throw switchErr;
+        }
+      }
+
       const chain = (await ethereum.request({ method: 'eth_chainId' })) as string;
-      const addr = (accts?.[0] as Address | undefined) ?? null;
-      setAddress(addr);
+      setAddress((accts?.[0] as Address | undefined) ?? null);
       setChainId(chain);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Connection failed.');

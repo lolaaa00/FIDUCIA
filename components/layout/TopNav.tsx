@@ -61,11 +61,12 @@ export default function TopNav() {
           {process.env.NEXT_PUBLIC_USE_MOCKS === 'true' && (
             <span className="site-badge">MOCK MODE</span>
           )}
-          <WalletButton />
-          {isHome && (
+          {isHome ? (
             <Link href="/borrower" className="nav-launch-btn">
               Launch app
             </Link>
+          ) : (
+            <WalletButton />
           )}
         </div>
       </div>
@@ -76,25 +77,37 @@ export default function TopNav() {
 function WalletButton() {
   const { address, connect, disconnect, hasProvider, isConnected, isConnecting } = useWallet();
 
-  const label = !hasProvider
-    ? 'No wallet'
-    : isConnected && address
-      ? shortAddress(address)
-      : 'Connect Wallet';
+  if (isConnected && address) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="wallet-button" style={{ cursor: 'default' }}>
+          <Wallet className="h-4 w-4 text-[#63E6C2]" />
+          {shortAddress(address)}
+        </span>
+        <button
+          type="button"
+          onClick={disconnect}
+          className="wallet-button"
+          style={{ padding: '0 10px', fontSize: '0.75rem', color: 'rgba(226,236,245,0.5)' }}
+        >
+          Disconnect
+        </button>
+      </div>
+    );
+  }
 
   return (
     <button
       type="button"
       onClick={async () => {
         if (!hasProvider || isConnecting) return;
-        if (isConnected) await disconnect();
-        else await connect();
+        await connect();
       }}
       className="wallet-button disabled:cursor-not-allowed disabled:opacity-60"
       disabled={!hasProvider || isConnecting}
     >
       <Wallet className="h-4 w-4 text-[#63E6C2]" />
-      {isConnecting ? 'Connecting…' : label}
+      {isConnecting ? 'Connecting…' : !hasProvider ? 'No wallet' : 'Connect Wallet'}
     </button>
   );
 }
