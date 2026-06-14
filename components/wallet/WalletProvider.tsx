@@ -49,7 +49,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
 
     async function ensureStudionet(eth: EthereumProvider) {
-      const CHAIN_ID_HEX = '0xF29F';
+      const CHAIN_ID_HEX = '0xF22F';
       try {
         await eth.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: CHAIN_ID_HEX }] });
       } catch (switchErr) {
@@ -113,7 +113,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     try {
       const accts = (await ethereum.request({ method: 'eth_requestAccounts' })) as string[];
 
-      const CHAIN_ID_HEX = '0xF29F'; // 61999
+      const CHAIN_ID_HEX = '0xF22F'; // 61999
       try {
         await ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: CHAIN_ID_HEX }] });
       } catch (switchErr) {
