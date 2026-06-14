@@ -103,23 +103,40 @@ export default function AdminPage() {
       {/* Review Fee */}
       <Card>
         <h3 className="font-display text-lg text-[#E2ECF5] mb-1">Review Fee</h3>
-        <p className="text-xs text-[#A4A7E3] mb-4">Current: {Number(stats.review_fee) / 1e18} GEN</p>
-        <div className="flex gap-3">
-          <input
-            type="number"
-            value={newFee}
-            onChange={(e) => setNewFee(e.target.value)}
-            placeholder="New fee in wei"
-            className="flex-1 font-mono"
-          />
+        <p className="text-xs text-[#A4A7E3] mb-3">
+          Current: <span className="text-[#F6C56B] font-mono">{Number(stats.review_fee) / 1e18} GEN</span>
+        </p>
+        <div className="flex gap-3 items-center">
+          <div className="relative flex-1">
+            <input
+              type="number"
+              min="0"
+              step="0.001"
+              value={newFee}
+              onChange={(e) => setNewFee(e.target.value)}
+              placeholder="e.g. 0.01"
+              className="w-full font-mono pr-14"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-xs text-[#A4A7E3] pointer-events-none">
+              GEN
+            </span>
+          </div>
           <Button
             variant="ghost"
             loading={actionLoading === 'fee'}
-            onClick={() => act('fee', () => setReviewFee(Number(newFee)))}
+            onClick={() => {
+              const wei = Math.round(parseFloat(newFee) * 1e18);
+              act('fee', () => setReviewFee(wei));
+            }}
           >
             Update
           </Button>
         </div>
+        {newFee && !isNaN(parseFloat(newFee)) && (
+          <p className="font-mono text-xs text-[#A4A7E3] mt-2">
+            = {Math.round(parseFloat(newFee) * 1e18).toLocaleString()} wei
+          </p>
+        )}
       </Card>
 
       {/* Flag case */}
