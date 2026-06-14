@@ -14,9 +14,10 @@ const marketingLinks = [
 ];
 
 const appLinks = [
-  { href: '/borrower', label: 'Borrower' },
-  { href: '/lenders',  label: 'Lenders' },
-  { href: '/admin',    label: 'Admin' },
+  { href: '/borrower',   label: 'Borrower' },
+  { href: '/lenders',    label: 'Lenders' },
+  { href: '/reputation', label: 'Reputation' },
+  { href: '/admin',      label: 'Admin' },
 ];
 
 export default function TopNav() {
