@@ -30,6 +30,9 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Fiducia — Decentralized Underwriting",
   description: "GenLayer-native underwriting layer. Private evidence. Public trust. Consensus-backed credit decisions.",
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({
